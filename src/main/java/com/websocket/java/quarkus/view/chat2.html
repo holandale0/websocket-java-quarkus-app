@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Test</title>
+    <style>
+        body { font-family: Arial; }
+        #chat { list-style: none; padding: 0; }
+        .me { color: blue; }
+        .other { color: green; }
+    </style>
+</head>
+<body>
+
+<h2>Chat Test</h2>
+
+<input type="text" id="msg" placeholder="Digite..." />
+<button onclick="send()">Enviar</button>
+
+<ul id="chat"></ul>
+
+<script>
+    const room = "room1";
+    const user = "user2";
+
+    const ws = new WebSocket(`ws://localhost:8080/chat/${room}/${user}`);
+
+    ws.onopen = () => {
+        console.log("Conectado!");
+    };
+
+    ws.onmessage = (event) => {
+        console.log("Recebido:", event.data);
+
+        // 👇 esperando JSON do backend
+        const data = JSON.parse(event.data);
+
+        addMessage(data.sender, data.content);
+    };
+
+    function send() {
+        const input = document.getElementById("msg");
+
+        const message = {
+            sender: user,
+            content: input.value,
+            roomId: room
+        };
+
+        // 👇 envia JSON
+        ws.send(JSON.stringify(message));
+
+        input.value = "";
+    }
+
+    function addMessage(sender, content) {
+        const li = document.createElement("li");
+
+        li.className = sender === user ? "me" : "other";
+        li.innerText = `${sender}: ${content}`;
+
+        document.getElementById("chat").appendChild(li);
+    }
+</script>
+
+</body>
+</html>
